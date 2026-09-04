@@ -3,7 +3,7 @@
 
 #include<vector>
 #include <string>
-std::vector<std::string> parseRespCommand(const std::string &input);
+
 class RedisCommandHandler {
 public:
     RedisCommandHandler();

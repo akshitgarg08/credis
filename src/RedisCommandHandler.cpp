@@ -127,6 +127,20 @@ static std::string handleRename(const std::vector<std::string>& tokens, RedisDat
     return "-Error: Key not found or rename failed\r\n";
 }
 
+static std::string handleLget (const std::vector<std::string>& tokens, RedisDatabase& db){
+    if(tokens.size() < 2){
+        return "-Error: LGET requires key";
+    }
+    auto vals = db.lget(tokens[1]);
+    std::ostringstream oss;
+    oss <<  "*" << vals.size() << "\r\n";
+    for(const auto& val: vals){
+        oss << "$" << val.size() << "\r\n" << val << "\r\n";
+    }
+    return oss.str();
+}
+
+
 static std::string handleLlen(const std::vector<std::string>& tokens, RedisDatabase& db){
     if(tokens.size() < 2){
         return "-Error: LLEN requires key/r/n";
@@ -139,7 +153,9 @@ static std::string handleLpush(const std::vector<std::string>& tokens, RedisData
     if(tokens.size() < 3){
         return "-Error: LPUSH requires key and value/r/n";
     }
-    db.lpush(tokens[1],tokens[2]);
+    for(size_t i=2; i<tokens.size(); i++){
+        db.lpush(tokens[1], tokens[i]);
+    }
     ssize_t len = db.llen(tokens[1]);
     return ":" + std::to_string(len) + "\r\n" ;
 }
@@ -148,7 +164,9 @@ static std::string handleRpush(const std::vector<std::string>& tokens, RedisData
     if(tokens.size() < 3){
         return "-Error: RPUSH requires key and value/r/n";
     }
-    db.rpush(tokens[1],tokens[2]);
+    for(size_t i=2; i<tokens.size(); i++){
+        db.rpush(tokens[1], tokens[i]);
+    };
     ssize_t len = db.llen(tokens[1]);
     return ":" + std::to_string(len) + "\r\n" ;
 }
@@ -352,7 +370,7 @@ std:: string RedisCommandHandler::processCommand(const std::string& commandLine)
     else if(cmd == "TYPE"){
         return handleType(tokens,db);       
     }
-    else if(cmd == "DELETE" || cmd == "UNLINK"){
+    else if(cmd == "DELETE" || cmd == "UNLINK" || cmd == "DEL"){
         return handleDel(tokens,db);
     }
     else if(cmd == "EXPIRE"){
@@ -363,6 +381,9 @@ std:: string RedisCommandHandler::processCommand(const std::string& commandLine)
     }
 
     // List Operations
+    else if(cmd == "LGET"){
+        return handleLget(tokens,db);
+    }
     else if(cmd =="LLEN"){
         return handleLlen(tokens,db);
     }
@@ -407,6 +428,9 @@ std:: string RedisCommandHandler::processCommand(const std::string& commandLine)
     else if(cmd =="HKEYS"){
         return handleHkeys(tokens,db);
     }
+    else if(cmd =="HVALS"){
+        return handleHvals(tokens,db);
+    }
     else if(cmd =="HLEN"){
         return handleHlen(tokens,db);
     }
@@ -415,7 +439,7 @@ std:: string RedisCommandHandler::processCommand(const std::string& commandLine)
     }
 
     else {
-        return "-Error: Unknown Command";
+        return "-Error: Unknown Command\r\n";
     }    
 
 }

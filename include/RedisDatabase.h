@@ -29,10 +29,12 @@ public:
     std::string type (const std::string& key);
     bool del(const std::string& key);
     bool expire(const std::string& key, int seconds);
+    void purgeExpired();
     bool rename(const std::string& oldKey, const std::string& newKey);
 
     // List Operations
     ssize_t llen(const std::string& key);
+    std::vector<std::string> lget(const std::string& key);
     void lpush(const std::string& key, const std::string& value);
     void rpush(const std::string& key, const std::string& value);
     bool lpop(const std::string& key, std::string& value);

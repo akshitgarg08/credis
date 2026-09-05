@@ -1,4 +1,4 @@
-# 🧠 credis — C++ meets Redis, and they hit it off
+# 🧠 Credis — C++ meets Redis, and they hit it off
 
 > *"Why pay for Redis when you can lose sleep building your own?"*
 
@@ -187,6 +187,6 @@ Look at that. It just *works*. Chills.
 
 ## 🙌 Why "credis"?
 
-**C**++ + **Redis** = **credis**. Simple math, solid pun. If you have a better name, keep it to yourself.
+**C**++ + **Redis** = **Credis**. Simple math, solid pun. If you have a better name, keep it to yourself.
 
 Happy hacking, and may your mutexes always lock in order. 🔒

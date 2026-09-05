@@ -10,6 +10,13 @@ int main(int argc, char*argv[]){
         port=std::stoi(argv[1]);
     }
 
+    if(RedisDatabase::getInstance().load("dump.my_rdb")){
+        std::cout << "Database loaded from dump.my_rdb\n";
+    }
+    else{
+        std::cout << "No dump found or load failed";
+    }
+
     RedisServer server(port);
 
     std::thread persistanceThread([](){

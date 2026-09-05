@@ -4,6 +4,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
+#include <iomanip>
 
 RedisDatabase& RedisDatabase::getInstance() {
     static RedisDatabase instance;
@@ -378,19 +379,19 @@ bool RedisDatabase:: dump(const std::string& filename){
     }
 
     for(const auto& kv: kv_store){
-        ofs << "K " << kv.first << " " << kv.second << "\n";
+        ofs << "K " << std::quoted(kv.first) << " " << std::quoted(kv.second) << "\n";
     }
     for(const auto& kv: list_store) {
-        ofs<< "L " << kv.first;
+        ofs<< "L " << std::quoted(kv.first);
         for(const auto& item : kv.second) {
-            ofs << " " << item;
+            ofs << " " << std::quoted(item);
         }
         ofs<< "\n";
     }
     for(const auto& kv: hash_store){
-        ofs << "H " << kv.first;
+        ofs << "H " << std::quoted(kv.first);
         for( const auto& field_val : kv.second){
-            ofs << " " <<field_val.first << ":" << field_val.second;
+            ofs << " " <<std::quoted(field_val.first+ ":" +field_val.second);
         }
         ofs<< "\n";
     }
@@ -416,25 +417,25 @@ bool RedisDatabase::load(const std::string &filename){
         iss >> type;
         if(type == 'K'){
             std::string key,value;
-            iss >> key >> value;
+            iss >> std::quoted(key) >> std::quoted(value);
             kv_store[key] = value;
         } 
         else if(type == 'L' ){
             std::string key;
             std::string item;
             std::vector<std::string> list;
-            iss>>key;
-            while(iss >> item){
+            iss>>std::quoted(key);
+            while(iss >> std::quoted(item)){
                 list.push_back(item);
             }
             list_store[key]=list;
         }
         else if(type == 'H'){
             std::string key;
-            iss >> key;
+            iss >> std::quoted(key);
             std::unordered_map<std::string, std::string> hash;
             std::string pair;
-            while(iss >> pair){
+            while(iss >> std::quoted(pair)){
                 auto pos = pair.find(':');
                 if(pos!=std::string::npos){
                     std::string field = pair.substr(0, pos);

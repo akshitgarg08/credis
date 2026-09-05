@@ -1,4 +1,4 @@
-.vscode/
+
 my_redis_server
 build/
 dump.my_rdb

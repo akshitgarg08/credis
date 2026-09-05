@@ -219,6 +219,101 @@ static std::string handleLset(const std::vector<std::string>& tokens, RedisDatab
     }
 }
 
+static std::string handleHset (const std::vector<std::string>& tokens, RedisDatabase& db){
+    if(tokens.size() < 4){
+        return "-Error: HSET requires key, field and value";
+    }
+    db.hset(tokens[1],tokens[2],tokens[3]);
+    return ":1\r\n";
+}
+
+static std::string handleHget (const std::vector<std::string>& tokens, RedisDatabase& db){
+    if(tokens.size() < 3){
+        return "-Error: HGET requires key and field";
+    }
+    std::string value;
+    if(db.hget(tokens[1], tokens[2], value)){
+        return "$" + std::to_string(value.size()) + "\r\n" + value + "\r\n" ;
+    }
+    return "$-1\r\n";
+}
+
+static std::string handleHexists (const std::vector<std::string>& tokens, RedisDatabase& db){
+    if(tokens.size() < 3){
+        return "-Error: HEXISTS requires key, field";
+    }
+    bool exists = db.hexists(tokens[1], tokens[2]);
+    return ":" + std::to_string(exists ? 1 : 0) + "\r\n";
+
+}
+
+static std::string handleHdel (const std::vector<std::string>& tokens, RedisDatabase& db){
+    if(tokens.size() < 3){
+        return "-Error: HDEL requires key and field";
+    }
+    bool res = db.hdel(tokens[1], tokens[2]);
+    return ":" + std::to_string(res ? 1 : 0) + "\r\n";
+}
+
+static std::string handleHgetall (const std::vector<std::string>& tokens, RedisDatabase& db){
+    if(tokens.size() < 2){
+        return "-Error: HGETALL requires key";
+    }
+    auto hash = db.hgetall(tokens[1]);
+    std::ostringstream oss;
+    oss <<  "*" << hash.size() * 2 << "\r\n";
+    for(const auto& pair: hash){
+        oss << "$" << pair.first.size() << "\r\n" << pair.first << "\r\n";
+        oss << "$" << pair.second.size() << "\r\n" << pair.second << "\r\n";
+    } 
+    return oss.str();
+}
+
+static std::string handleHkeys (const std::vector<std::string>& tokens, RedisDatabase& db){
+    if(tokens.size() < 2){
+        return "-Error: HKEYS requires key";
+    }
+    auto keys = db.hkeys(tokens[1]);
+    std::ostringstream oss;
+    oss <<  "*" << keys.size() << "\r\n";
+    for(const auto& key: keys){
+        oss << "$" << key.size() << "\r\n" << key << "\r\n";
+    }
+    return oss.str();
+}
+
+static std::string handleHvals (const std::vector<std::string>& tokens, RedisDatabase& db){
+    if(tokens.size() < 2){
+        return "-Error: HVALS requires key";
+    }
+    auto vals = db.hvals(tokens[1]);
+    std::ostringstream oss;
+    oss <<  "*" << vals.size() << "\r\n";
+    for(const auto& val: vals){
+        oss << "$" << val.size() << "\r\n" << val << "\r\n";
+    }
+    return oss.str();
+}
+
+static std::string handleHlen (const std::vector<std::string>& tokens, RedisDatabase& db){
+    if(tokens.size() < 2){
+        return "-Error: HLEN requires key";
+    }
+    ssize_t len = db.hlen(tokens[1]);
+    return ":" + std::to_string(len) + "\r\n";
+}
+
+static std::string handleHmset (const std::vector<std::string>& tokens, RedisDatabase& db){
+    if(tokens.size() < 4 || (tokens.size()%2 == 1)){
+        return "-Error: HMSET requires key followed by field and value pairs";
+    }
+    std::vector<std::pair<std::string, std::string>> fieldValues;
+    for(size_t i =2; i < tokens.size(); i+=2){
+        fieldValues.emplace_back(tokens[i], tokens[i+1]);
+    }
+    db.hmset(tokens[1], fieldValues);
+    return "+OK\r\n";
+}
 
 
 RedisCommandHandler::RedisCommandHandler() {}
@@ -293,6 +388,31 @@ std:: string RedisCommandHandler::processCommand(const std::string& commandLine)
         return handleLset(tokens,db);
     }
 
+    // Hash Operations
+    else if(cmd =="HSET"){
+        return handleHset(tokens,db);
+    }
+    else if(cmd =="HGET"){
+        return handleHget(tokens,db);
+    }
+    else if(cmd =="HEXISTS"){
+        return handleHexists(tokens,db);
+    }
+    else if(cmd =="HDEL"){
+        return handleHdel(tokens,db);
+    }
+    else if(cmd =="HGETALL"){
+        return handleHgetall(tokens,db);
+    }
+    else if(cmd =="HKEYS"){
+        return handleHkeys(tokens,db);
+    }
+    else if(cmd =="HLEN"){
+        return handleHlen(tokens,db);
+    }
+    else if(cmd =="HMSET"){
+        return handleHmset(tokens,db);
+    }
 
     else {
         return "-Error: Unknown Command";

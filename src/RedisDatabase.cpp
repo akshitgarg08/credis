@@ -2,6 +2,8 @@
 
 #include <fstream>
 #include <sstream>
+#include <algorithm>
+#include <iterator>
 
 RedisDatabase& RedisDatabase::getInstance() {
     static RedisDatabase instance;
@@ -78,7 +80,7 @@ bool RedisDatabase::del(const std::string& key){
     return erased;
 }
 
-bool RedisDatabase::expire(const std::string& key, const std::string& seconds){
+bool RedisDatabase::expire(const std::string& key, int seconds){
     std::lock_guard<std::mutex> lock(db_mutex);
     bool exists = (kv_store.find(key) != kv_store.end()) || 
                   (list_store.find(key) != list_store.end()) || 
@@ -86,7 +88,7 @@ bool RedisDatabase::expire(const std::string& key, const std::string& seconds){
     if(!exists){
         return false;
     }
-    expiry_map[key] = std::chrono::steady_clock::now() + std::chrono::seconds(stoi(seconds));
+    expiry_map[key] = std::chrono::steady_clock::now() + std::chrono::seconds((seconds));
     return true;
 }
 
@@ -120,6 +122,129 @@ bool RedisDatabase::rename(const std::string& oldKey, const std::string& newKey)
     
     return found;
 }
+
+ssize_t RedisDatabase::llen(const std::string& key){
+    std::lock_guard<std::mutex> lock(db_mutex);
+    auto it = list_store.find(key);
+    if(it != list_store.end()){
+        return it->second.size();
+    }
+    return 0;
+}
+
+void RedisDatabase::lpush(const std::string& key, const std::string& value){
+    std::lock_guard<std::mutex> lock(db_mutex);
+    list_store[key].insert(list_store[key].begin(), value);
+
+}
+void RedisDatabase::rpush(const std::string& key, const std::string& value){
+    std::lock_guard<std::mutex> lock(db_mutex);
+    list_store[key].push_back(value);
+
+}
+bool RedisDatabase::lpop(const std::string& key, std::string& value){
+    std::lock_guard<std::mutex> lock(db_mutex);
+    auto it = list_store.find(key);
+    if(it != list_store.end() && !it->second.empty()){
+        value = it->second.front();
+        it->second.erase(it->second.begin());
+        return true;
+    }
+    return false;
+
+}
+bool RedisDatabase::rpop(const std::string& key, std::string& value){
+    std::lock_guard<std::mutex> lock(db_mutex);
+    auto it = list_store.find(key);
+    if(it != list_store.end() && !it->second.empty()){
+        value = it->second.back();
+        it->second.pop_back();
+        return true;
+    }
+    return false;
+
+}
+
+int RedisDatabase::lrem(const std::string& key, int count, const std::string& value){
+    std::lock_guard<std::mutex> lock(db_mutex);
+    int removed = 0;
+    auto it = list_store.find(key);
+    if(it == list_store.end()){
+        return 0;
+    }
+    auto &lst = it->second;
+    
+    if(count == 0){
+        auto new_end = std::remove(lst.begin(), lst.end(), value);
+        removed = std::distance(new_end, lst.end());
+        lst.erase(new_end, lst.end());
+    }
+    else if(count>0){
+        for (auto iter = lst.begin(); iter != lst.end() && removed < count;){
+            if(*iter == value){
+                iter = lst.erase(iter);
+                removed++;
+            }
+            else{
+                iter++;
+            }
+        }
+    }
+    else{
+        for (auto riter = lst.rbegin(); riter != lst.rend() && removed < abs(count);){
+            if(*riter == value){
+                auto fwdIter = riter.base();
+                --fwdIter;
+                fwdIter = lst.erase(fwdIter);
+                removed++;
+                riter = std::reverse_iterator<std::vector<std::string>::iterator>(fwdIter);
+            }
+            else{
+                riter++;
+            }
+        }
+    }
+    return removed;
+
+}
+
+bool RedisDatabase::lindex(const std::string& key, int index, std::string& value){
+    std::lock_guard<std::mutex> lock(db_mutex);
+    auto it = list_store.find(key);
+    if (it == list_store.end()){
+        return false;
+    }
+    const auto& lst = it->second;
+    if(index < 0){
+        index=lst.size() + index;
+    }
+    if(index < 0 || static_cast<ssize_t>(index) >= lst.size()){
+        return false;
+    }
+    value = lst[index];
+    return true;
+}
+
+bool RedisDatabase::lset(const std::string& key, int index, const std::string& value){
+    std::lock_guard<std::mutex> lock(db_mutex);
+    auto it = list_store.find(key);
+    if (it == list_store.end()){
+        return false;
+    }
+    auto& lst = it->second;
+    if(index < 0){
+        index=lst.size() + index;
+    }
+    if(index < 0 || static_cast<ssize_t>(index) >= lst.size()){
+        return false;
+    }
+    lst[index] = value;
+    return true;
+
+}
+
+
+
 
 
 bool RedisDatabase:: dump(const std::string& filename){

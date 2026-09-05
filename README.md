@@ -1,8 +1,8 @@
-# 🧠 Credis — C++ meets Redis, and they hit it off
+# 🧠 credis — C++ meets Redis, and they hit it off
 
 > *"Why pay for Redis when you can lose sleep building your own?"*
 
-Welcome to **Credis**, a lightweight, Redis-compatible, in-memory data store handcrafted in C++. It speaks RESP, juggles multiple clients like a caffeinated octopus, and remembers things even after you kill it (persistence, not trauma).
+Welcome to **credis**, a lightweight, Redis-compatible, in-memory data store handcrafted in C++. It speaks RESP, juggles multiple clients like a caffeinated octopus, and remembers things even after you kill it (persistence, not trauma).
 
 
 ---
@@ -185,6 +185,6 @@ Look at that. It just *works*. Chills.
 
 ## 🙌 Why "credis"?
 
-**C**++ + **Redis** = **Credis**. Simple math, solid pun. If you have a better name, keep it to yourself.
+**C**++ + **Redis** = **credis**. Simple math, solid pun. If you have a better name, keep it to yourself.
 
 Happy hacking, and may your mutexes always lock in order. 🔒

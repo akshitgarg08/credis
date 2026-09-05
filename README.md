@@ -2,20 +2,18 @@
 
 > *"Why pay for Redis when you can lose sleep building your own?"*
 
-Welcome to **credis**, a lightweight, Redis-compatible, in-memory data store handcrafted in C++. It speaks RESP, juggles multiple clients like a caffeinated octopus, and remembers things even after you kill it (persistence, not trauma).
+Welcome to **Credis**, a lightweight, Redis-compatible, in-memory data store handcrafted in C++. It speaks RESP, juggles multiple clients like a caffeinated octopus, and remembers things even after you kill it (persistence, not trauma).
 
 
 ---
 
 ## 🎯 The Mission
 
-Build a Redis clone that:
+Build a Redis-compatible in-memory data store that:
 - Talks fluent **RESP** (Redis Serialization Protocol)
 - Handles **strings, lists, and hashes** like a champ
 - Serves **multiple clients at once** without falling over
 - **Persists to disk** so your data survives a `Ctrl+C` panic-quit
-
-Think of it as Redis's scrappy younger sibling — same vocabulary, home-cooked internals.
 
 ---
 

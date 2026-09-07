@@ -183,6 +183,20 @@ Look at that. It just *works*. Chills.
 
 ---
 
+## Benchmarks & Performance
+
+Benchmarked locally using the official `redis-benchmark` suite across 400,000 requests with 50 parallel client connections:
+
+* **Throughput:**
+  * `PING`: ~40,800 req/sec
+  * `SET`: ~30,900 req/sec
+  * `GET`: ~30,000 req/sec
+* **Latency:**
+  * Median (p50): ~0.77 ms (Sub-millisecond)
+  * 95th Percentile (p95): ~1.03 ms
+  * 99th Percentile (p99): ~1.30 ms
+
+
 ## 🙌 Why "credis"?
 
 **C**++ + **Redis** = **credis**. Simple math, solid pun. If you have a better name, keep it to yourself.
